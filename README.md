@@ -28,3 +28,17 @@ will grow with it.
 
 Installing dependencies and starting the app will be documented here once the
 application code exists in week 3.
+
+## Branching strategy
+
+This repository follows GitHub Flow:
+
+- `main` is always in a working state.
+- New work happens on a short-lived branch named after its purpose:
+  `feature/...`, `fix/...` or `docs/...`.
+- Every change reaches `main` through a pull request that says what changed
+  and why.
+- Branches are deleted after the merge.
+- Commit messages are in English and in the imperative mood
+  ("Add summary endpoint", not "Added summary endpoint").
+
