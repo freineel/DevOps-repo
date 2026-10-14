@@ -42,3 +42,18 @@ This repository follows GitHub Flow:
 - Commit messages are in English and in the imperative mood
   ("Add summary endpoint", not "Added summary endpoint").
 
+## Roadmap
+
+| Week | Topic | Result in this repository |
+| ---: | --- | --- |
+| 1 | DevOps & Linux | Tools set up, topic chosen |
+| 2 | Git & GitHub | Repository, branching strategy, first merged pull request |
+| 3 | Build processes | App runs locally, first endpoints and tests |
+| 4 | Docker | App and database run with `docker compose up` |
+| 5 | Continuous integration | Build, tests and lint run on every push |
+| 6 | Continuous deployment | App reachable at a public URL |
+| 7 | Infrastructure as code | One piece of infrastructure described in Terraform |
+| 8 | Kubernetes | Several replicas, rolling updates without downtime |
+| 9 | Monitoring & DevSecOps | Grafana dashboard, image scanned with Trivy |
+| 10 | Final project | Complete documentation, tag `v1.0.0` |
+
