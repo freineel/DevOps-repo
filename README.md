@@ -10,3 +10,12 @@ infrastructure as code, Kubernetes and monitoring), so the app itself stays
 small. It has one user and one currency and offers only a REST API. User
 accounts, budgets, multiple currencies and a web frontend are out of scope.
 
+## Prerequisites
+
+- Git
+- Python 3.12 or newer
+- Docker (needed from week 4)
+
+The rest of the tech stack is decided in week 3 of the course, and this list
+will grow with it.
+
