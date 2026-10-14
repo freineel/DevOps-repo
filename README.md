@@ -19,3 +19,12 @@ accounts, budgets, multiple currencies and a web frontend are out of scope.
 The rest of the tech stack is decided in week 3 of the course, and this list
 will grow with it.
 
+## Setup
+
+    git clone git@github.com:freineel/DevOps-repo.git
+    cd DevOps-repo
+    python3 -m venv .venv
+    source .venv/bin/activate
+
+Installing dependencies and starting the app will be documented here once the
+application code exists in week 3.
