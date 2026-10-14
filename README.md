@@ -57,3 +57,29 @@ This repository follows GitHub Flow:
 | 9 | Monitoring & DevSecOps | Grafana dashboard, image scanned with Trivy |
 | 10 | Final project | Complete documentation, tag `v1.0.0` |
 
+## Usage
+
+The API is planned and not built yet. It will listen on port 8000.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/expenses` | Add an expense (amount, category, date, optional note) |
+| `GET` | `/expenses` | List expenses, optionally filtered by `category` or `month` |
+| `DELETE` | `/expenses/<id>` | Delete an expense |
+| `GET` | `/summary` | Totals per category and per month |
+| `GET` | `/health` | Liveness check |
+| `GET` | `/ready` | Readiness check, includes the database |
+| `GET` | `/summary` | Totals per category and per month |
+| `GET` | `/health` | Liveness check |
+| `GET` | `/ready` | Readiness check, includes the database |
+| `GET` | `/metrics` | Metrics in Prometheus format |
+
+Example:
+
+    curl -X POST localhost:8000/expenses \
+      -H "Content-Type: application/json" \
+      -d '{"amount": 12.50, "category": "food", "date": "2026-10-14"}'
+
+    curl "localhost:8000/summary?month=2026-10"
+
+
