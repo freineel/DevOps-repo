@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import re
 from dataclasses import asdict, dataclass
+from datetime import date
 from typing import Any
 
 
@@ -23,8 +25,47 @@ class ValidationError(ValueError):
     """Raised when client input does not satisfy the Expense invariants."""
 
 
-# TODO (you): validation functions, one per field, each raising ValidationError
-# with a clear message. Compare with validate_title() in the Taskboard app.
-#   validate_amount_cents(raw) -> int   positive int, no bool (bool is an int!)
-#   validate_category(raw)     -> str   non-empty after strip()
-#   validate_spent_on(raw)     -> str   valid ISO date, date.fromisoformat helps
+# Validation runs before anything reaches the repository, so the repository can
+# trust its input. Every function returns the cleaned value or raises
+# ValidationError; routes.py turns that into a 400 response.
+
+
+def validate_amount_cents(raw: Any) -> int:
+    # bool is a subclass of int in Python, so without the explicit check
+    # {"amount_cents": true} would be accepted as 1 cent.
+    if isinstance(raw, bool) or not isinstance(raw, int):
+        raise ValidationError("amount_cents must be an integer (cents)")
+    if raw <= 0:
+        raise ValidationError("amount_cents must be greater than 0")
+    return raw
+
+
+def validate_category(raw: Any) -> str:
+    if not isinstance(raw, str):
+        raise ValidationError("category must be a string")
+    category = raw.strip()
+    if not category:
+        raise ValidationError("category must not be empty")
+    return category
+
+
+def validate_spent_on(raw: Any) -> str:
+    if not isinstance(raw, str):
+        raise ValidationError("spent_on must be a date string YYYY-MM-DD")
+    try:
+        parsed = date.fromisoformat(raw)
+    except ValueError:
+        # "from None" hides the internal ValueError; the client only needs our message.
+        raise ValidationError("spent_on must be a valid date YYYY-MM-DD") from None
+    # Normalise to YYYY-MM-DD so the month filter (prefix check) always works.
+    return parsed.isoformat()
+
+
+_MONTH_PATTERN = re.compile(r"\d{4}-(0[1-9]|1[0-2])")
+
+
+def validate_month(raw: Any) -> str:
+    """Query filter ?month=YYYY-MM."""
+    if not isinstance(raw, str) or not _MONTH_PATTERN.fullmatch(raw):
+        raise ValidationError("month must have the format YYYY-MM")
+    return raw
