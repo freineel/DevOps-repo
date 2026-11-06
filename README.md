@@ -16,8 +16,8 @@ accounts, budgets, multiple currencies and a web frontend are out of scope.
 - Python 3.12 or newer
 - Docker (needed from week 4)
 
-The rest of the tech stack is decided in week 3 of the course, and this list
-will grow with it.
+The app uses Flask, served by Gunicorn in the container. Tests run with pytest,
+linting with ruff.
 
 ## Setup
 
@@ -25,9 +25,38 @@ will grow with it.
     cd DevOps-repo
     python3 -m venv .venv
     source .venv/bin/activate
+    make install
+    make run
 
-Installing dependencies and starting the app will be documented here once the
-application code exists in week 3.
+`make help` lists all targets (tests, coverage, lint, formatting).
+
+## Container
+
+    docker build -t expense-tracker:local .
+    docker run -d -p 8000:8000 --name expense expense-tracker:local
+    curl localhost:8000/health
+
+The image is built from `python:3.12-slim` in two stages and runs Gunicorn as
+the unprivileged user `appuser`. Compared with a naive Dockerfile
+(`python:3.12`, `COPY . .` before `pip install`, single stage, no `USER`):
+
+| Image | Size on disk | Runs as |
+| --- | ---: | --- |
+| naive | 1.63 GB | root |
+| optimized | 188 MB | appuser |
+
+What makes the difference:
+
+- **Slim base image.** `python:3.12-slim` leaves out compilers and system
+  tools the app never needs at runtime.
+- **Multi-stage build.** Dependencies are installed in a builder stage; only
+  the installed packages are copied into the final image, without pip cache
+  or build leftovers.
+- **Layer order for caching.** `requirements.txt` is copied and installed
+  before the application code, so a code change does not trigger a new
+  `pip install`.
+- **Non-root user and `.dockerignore`.** The process runs as `appuser`, and
+  `.git`, `.venv`, tests and `.env` never reach the build context.
 
 ## Branching strategy
 
@@ -59,16 +88,13 @@ This repository follows GitHub Flow:
 
 ## Usage
 
-The API is planned and not built yet. It will listen on port 8000.
+The API listens on port 8000.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `POST` | `/expenses` | Add an expense (amount, category, date, optional note) |
 | `GET` | `/expenses` | List expenses, optionally filtered by `category` or `month` |
 | `DELETE` | `/expenses/<id>` | Delete an expense |
-| `GET` | `/summary` | Totals per category and per month |
-| `GET` | `/health` | Liveness check |
-| `GET` | `/ready` | Readiness check, includes the database |
 | `GET` | `/summary` | Totals per category and per month |
 | `GET` | `/health` | Liveness check |
 | `GET` | `/ready` | Readiness check, includes the database |
