@@ -1,0 +1,22 @@
+# Version control and CI: not needed at runtime
+.git
+.github
+
+# Local environment and caches
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov
+
+# Tests are not shipped in the production image
+tests
+
+# Secrets: must never end up in an image layer
+.env
+
+# Docs
+*.md
+
