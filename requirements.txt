@@ -1,7 +1,9 @@
 # Runtime dependencies.
 # Compatible-release pins (~=) allow minor and patch updates but no major jumps.
-# The Postgres driver (psycopg) is added in week 4 together with the database.
 
 Flask~=3.0
 gunicorn~=22.0
 prometheus-flask-exporter~=0.23
+# Postgres driver. [binary] ships a precompiled libpq, so the slim image needs
+# no compiler or libpq-dev. [pool] adds psycopg_pool (connection pool).
+psycopg[binary,pool]~=3.2
