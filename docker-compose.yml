@@ -1,0 +1,56 @@
+# Local stack: the app (web) plus Postgres (db).
+# Start:  docker compose up --build -d
+# Stop:   docker compose down        (data stays in the volume)
+# Reset:  docker compose down -v     (also deletes the volume = all data)
+
+services:
+  web:
+    # Built from our own Dockerfile instead of pulling an image.
+    build:
+      context: .
+      args:
+        APP_VERSION: ${APP_VERSION:-0.1.0-local}
+    ports:
+      - "8000:8000"
+    environment:
+      # "db" is the service name below: Compose puts both containers in one
+      # network where service names resolve via DNS. Never "localhost" here,
+      # that would be the web container itself.
+      DATABASE_URL: postgresql://expenses:${POSTGRES_PASSWORD:-changeme}@db:5432/expenses
+      LOG_LEVEL: INFO
+      # Two workers are fine now: both share the same database, unlike the
+      # in-memory store where each worker had its own list.
+      GUNICORN_WORKERS: "2"
+    # Wait until Postgres actually accepts connections (healthcheck below),
+    # not just until its container has started. The app creates its table on
+    # startup and would crash against a database that is still booting.
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    # Fixed major version + alpine variant (small image). Never :latest.
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: expenses
+      # Password from the environment or a .env file (git-ignored), with a
+      # default for local development only. Same variable as in DATABASE_URL,
+      # so the two can never drift apart.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: expenses
+    # Named volume: data survives "docker compose down" and container rebuilds.
+    # Without it, the data would live in the container layer and be lost.
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # No "ports:" on purpose: only the web container needs the database, so it
+    # stays unreachable from the host.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U expenses -d expenses"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  db-data:
