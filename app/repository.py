@@ -164,6 +164,11 @@ class PostgresExpenseRepository:
             log.exception("database health check failed")
             return False
 
+    def close(self) -> None:
+        # Closes all open database connections of the pool.
+        # The tests call this after every test so no connections are left open.
+        self._pool.close()
+
 
 def create_repository(config: Config) -> ExpenseRepository:
     if config.database_url:

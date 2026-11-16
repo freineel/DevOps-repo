@@ -1,5 +1,7 @@
 # Expense Tracker
 
+[![CI](https://github.com/freineel/DevOps-repo/actions/workflows/ci.yml/badge.svg)](https://github.com/freineel/DevOps-repo/actions/workflows/ci.yml)
+
 Expense Tracker is a small web app for recording personal expenses and seeing
 where the money goes each month. You enter an amount, a category and a date,
 and the app adds them up per category and per month.
@@ -58,18 +60,39 @@ What makes the difference:
 - **Non-root user and `.dockerignore`.** The process runs as `appuser`, and
   `.git`, `.venv`, tests and `.env` never reach the build context.
 
+## App and database with Docker Compose
+
+    make up      # starts the app (web) and Postgres (db) in the background
+    curl localhost:8000/ready
+    make down    # stops both, the data stays in the volume db-data
+
+Without `DATABASE_URL` the app keeps its data in memory. Docker Compose sets
+`DATABASE_URL`, so the app stores its data in Postgres. The data survives
+`make down` and `make up` because it lives in the named volume `db-data`.
+
+## Continuous integration
+
+Every pull request and every push to `main` runs the pipeline in
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+
+| Job | What it checks |
+| --- | --- |
+| Lint | `ruff check` and `ruff format --check` |
+| Test | `pytest` against a real Postgres 16, coverage must be at least 80 % |
+| Build image | `docker build`, then the container must answer on `/health` |
+
+`main` is protected: a pull request can only be merged when all three jobs
+are green.
+
+The tests in `tests/test_postgres_repository.py` need a database. They run in
+the pipeline and are skipped locally unless `TEST_DATABASE_URL` is set.
+
 ## Branching strategy
 
-This repository follows GitHub Flow:
-
-- `main` is always in a working state.
-- New work happens on a short-lived branch named after its purpose:
-  `feature/...`, `fix/...` or `docs/...`.
-- Every change reaches `main` through a pull request that says what changed
-  and why.
-- Branches are deleted after the merge.
-- Commit messages are in English and in the imperative mood
-  ("Add summary endpoint", not "Added summary endpoint").
+This repository follows GitHub Flow: `main` is always working, every change
+goes through a short-lived branch and a pull request with green CI. Branch
+names, commit messages and the pull request checklist are described in
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Roadmap
 
@@ -92,20 +115,25 @@ The API listens on port 8000.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `POST` | `/expenses` | Add an expense (amount, category, date, optional note) |
-| `GET` | `/expenses` | List expenses, optionally filtered by `category` or `month` |
-| `DELETE` | `/expenses/<id>` | Delete an expense |
-| `GET` | `/summary` | Totals per category and per month |
+| `POST` | `/api/expenses` | Add an expense (`amount_cents`, `category`, `spent_on`) |
+| `GET` | `/api/expenses` | List expenses, optionally filtered by `category` or `month` |
+| `DELETE` | `/api/expenses/<id>` | Delete an expense |
+| `GET` | `/api/expenses/summary` | Totals per category and per month |
 | `GET` | `/health` | Liveness check |
 | `GET` | `/ready` | Readiness check, includes the database |
 | `GET` | `/metrics` | Metrics in Prometheus format |
 
+Amounts are stored in cents (`1250` = 12.50 CHF) to avoid rounding errors.
+Dates use the format `YYYY-MM-DD`.
+
 Example:
 
-    curl -X POST localhost:8000/expenses \
+    curl -X POST localhost:8000/api/expenses \
       -H "Content-Type: application/json" \
-      -d '{"amount": 12.50, "category": "food", "date": "2026-10-14"}'
+      -d '{"amount_cents": 1250, "category": "food", "spent_on": "2026-10-14"}'
 
-    curl "localhost:8000/summary?month=2026-10"
+    curl "localhost:8000/api/expenses?month=2026-10"
+
+    curl localhost:8000/api/expenses/summary
 
 

@@ -1,0 +1,130 @@
+# CI pipeline for the expense tracker.
+#
+# Runs on every pull request and on every push to main.
+# Three jobs:
+#   lint  - checks code style and formatting with ruff
+#   test  - runs pytest against a real Postgres database, with coverage gate
+#   build - builds the Docker image and checks that /health answers
+#
+# lint and test run at the same time. build only starts when both are green.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  # Allows starting the pipeline by hand in the "Actions" tab on GitHub.
+  workflow_dispatch:
+
+# The pipeline only reads the code. It pushes nothing and creates no releases,
+# so read access is enough (principle of least privilege).
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          # Caches downloaded pip packages between runs, so the next run is faster.
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Check code style
+        run: ruff check .
+
+      - name: Check formatting
+        run: ruff format --check .
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    # A Postgres database that runs next to the tests, only for this job.
+    # It is deleted automatically when the job is finished.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: expenses_test
+          # "trust" means: no password needed. That is fine here, because this
+          # database only exists inside the CI runner for a few minutes and
+          # holds no real data. This way no password is written in the repository.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        # Wait until Postgres accepts connections before the steps start.
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Read by tests/test_postgres_repository.py. Without it, those tests are skipped.
+      TEST_DATABASE_URL: postgresql://postgres@localhost:5432/expenses_test
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      # The coverage gate (fail_under = 80) is set in pyproject.toml.
+      # If coverage is below 80 %, this step fails and the pipeline turns red.
+      - name: Run tests with coverage gate
+        run: pytest --cov=app --cov-report=term-missing
+
+  build:
+    name: Build image
+    runs-on: ubuntu-latest
+    # Only build the image when lint and test are both green.
+    needs: [lint, test]
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      # The image is only built here, not pushed anywhere.
+      # The commit hash is used as version, so the image shows which code it contains.
+      - name: Build the Docker image
+        run: docker build --build-arg APP_VERSION=ci-${{ github.sha }} -t expense-tracker:ci .
+
+      # Start the container and check that /health answers.
+      # The app needs a moment to start, so we try up to 30 times, once per second.
+      - name: Check that the container starts
+        run: |
+          docker run --detach --name expense-tracker-ci --publish 8000:8000 expense-tracker:ci
+
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail http://localhost:8000/health; then
+              echo ""
+              echo "Health check passed after $attempt attempt(s)"
+              docker rm --force expense-tracker-ci
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "Health check failed, container logs:"
+          docker logs expense-tracker-ci
+          docker rm --force expense-tracker-ci
+          exit 1
