@@ -101,3 +101,4 @@ def delete_expense(expense_id: int):
         return jsonify(error="expense not found"), 404
     # 204 No Content: success, deliberately without a body.
     return "", 204
+import os
