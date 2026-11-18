@@ -87,6 +87,24 @@ are green.
 The tests in `tests/test_postgres_repository.py` need a database. They run in
 the pipeline and are skipped locally unless `TEST_DATABASE_URL` is set.
 
+## Deployment
+
+The app runs on Render (free plan): `<APP_URL>`
+
+    curl <APP_URL>/health
+
+After a merge into `main` and a green CI run, the workflow
+[`.github/workflows/cd.yml`](.github/workflows/cd.yml) starts a deploy on
+Render and then runs [`scripts/smoke-test.sh`](scripts/smoke-test.sh) against
+the live app. The Render service is described in [`render.yaml`](render.yaml).
+
+On Render the app runs without a database, so the expenses are kept in memory
+and are lost on every deploy or restart. The free instance goes to sleep after
+15 minutes, so the first request can take up to a minute.
+
+Setup, configuration, rollback and troubleshooting are described in
+[DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## Branching strategy
 
 This repository follows GitHub Flow: `main` is always working, every change
