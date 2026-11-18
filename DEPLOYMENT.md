@@ -4,7 +4,7 @@ This document explains how to run the Expense Tracker locally and how to
 deploy it to [Render](https://render.com) (free plan). It is written so that
 someone who does not know the project can follow it step by step.
 
-Live instance: `<APP_URL>` (for example `https://expense-tracker-xxxx.onrender.com`)
+Live instance: <https://expense-tracker-oyhe.onrender.com>
 
 In this document `<APP_URL>` always means the public URL of the Render
 service, without a slash at the end.
