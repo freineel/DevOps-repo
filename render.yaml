@@ -1,0 +1,48 @@
+# Render Blueprint for the expense tracker.
+#
+# Render reads this file only from the root of the repository.
+# It describes the web service, so the setup is in Git and not only in the
+# Render dashboard. Field reference: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: expense-tracker
+    # Render builds the image from our own Dockerfile, the same one CI builds.
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+
+    # Free plan: the service goes to sleep after about 15 minutes without
+    # requests. The first request after that takes 30 to 60 seconds.
+    plan: free
+    # Frankfurt is the region closest to Switzerland.
+    # It cannot be changed after the service was created.
+    region: frankfurt
+    branch: main
+
+    # Render only sends traffic to a new deploy when this path answers 2xx.
+    # It has to be /health (no database). /ready checks the database and
+    # could block the deploy when the database has a problem.
+    healthCheckPath: /health
+
+    # No automatic deploy on every push. The deploy is started by the CD
+    # workflow (.github/workflows/cd.yml) and only after CI is green.
+    autoDeployTrigger: "off"
+
+    envVars:
+      # Render sends traffic to the port in PORT (default 10000).
+      # Gunicorn in our container listens on 8000, so we set PORT to 8000.
+      - key: PORT
+        value: "8000"
+      # One worker, because there is no database on Render. The expenses are
+      # kept in memory, and every worker would have its own list.
+      - key: GUNICORN_WORKERS
+        value: "1"
+      # Shown in /health, so we can see from outside which version runs.
+      - key: APP_VERSION
+        value: "0.1.0"
+      - key: LOG_LEVEL
+        value: INFO
+      # DATABASE_URL is not set on purpose: the free Postgres on Render is
+      # deleted after about 30 days. Without it the app uses the in-memory
+      # repository.
