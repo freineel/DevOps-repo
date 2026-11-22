@@ -89,9 +89,9 @@ the pipeline and are skipped locally unless `TEST_DATABASE_URL` is set.
 
 ## Deployment
 
-The app runs on Render (free plan): `<APP_URL>`
+The app runs on Render (free plan): `https://expense-tracker-oyhe.onrender.com`
 
-    curl <APP_URL>/health
+    curl https://expense-tracker-oyhe.onrender.com/health
 
 After a merge into `main` and a green CI run, the workflow
 [`.github/workflows/cd.yml`](.github/workflows/cd.yml) starts a deploy on
