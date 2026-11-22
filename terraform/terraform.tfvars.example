@@ -1,0 +1,6 @@
+# Copy to terraform.tfvars and adjust. terraform.tfvars is git-ignored.
+host_port   = 8080
+image_tag   = "local"
+app_version = "0.1.0-terraform"
+log_level   = "INFO"
+db_password = "choose-a-local-password"
