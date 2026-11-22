@@ -105,6 +105,20 @@ and are lost on every deploy or restart. The free instance goes to sleep after
 Setup, configuration, rollback and troubleshooting are described in
 [DEPLOYMENT.md](DEPLOYMENT.md).
 
+## Infrastructure as code
+
+The local stack (app, Postgres, network and volume) is also described with
+Terraform in [`terraform/`](terraform/README.md), using the local Docker
+provider. With Docker running and the image built (`make docker-build`):
+
+    cd terraform
+    terraform init
+    terraform apply
+    curl http://localhost:8080/health
+    terraform destroy
+
+The state file stays on the machine and is not committed.
+
 ## Branching strategy
 
 This repository follows GitHub Flow: `main` is always working, every change

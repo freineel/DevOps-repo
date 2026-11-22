@@ -1,0 +1,23 @@
+# Terraform working directory with the downloaded provider.
+.terraform/
+
+# State files. They contain every value of the stack in plain text,
+# including the database password, so they never go into git.
+*.tfstate
+*.tfstate.*
+
+# Crash logs.
+crash.log
+crash.*.log
+
+# Variable files can contain secrets. Only the example file is tracked.
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# .terraform.lock.hcl is committed on purpose: it pins the exact provider
+# version, the same idea as requirements.txt.
+
+# Saved plan files contain all values, including the password.
+tfplan
+*.tfplan
