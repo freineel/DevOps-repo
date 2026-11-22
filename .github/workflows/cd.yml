@@ -1,0 +1,68 @@
+# CD pipeline for the expense tracker.
+#
+# Starts after the CI workflow has finished on main. If CI was green, it
+# triggers a deploy on Render and then runs the smoke test against the live app.
+#
+# Needs two settings in GitHub (Settings -> Secrets and variables -> Actions):
+#   secret   RENDER_DEPLOY_HOOK  deploy hook URL from the Render dashboard
+#   variable APP_URL             public URL, e.g. https://expense-tracker-xxxx.onrender.com
+# How to get them is described in DEPLOYMENT.md.
+
+name: CD
+
+on:
+  # Runs when the workflow "CI" (ci.yml) is finished on main.
+  # It also runs when CI failed, so the job below checks the result.
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  # Allows a deploy by hand in the "Actions" tab.
+  workflow_dispatch:
+
+# Only reads the code, so read access is enough.
+permissions:
+  contents: read
+
+# Never run two deploys at the same time. A second one waits for the first.
+concurrency:
+  group: deploy-render
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Render
+    # Only deploy when CI was green (or when started by hand).
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Trigger deploy on Render
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "The secret RENDER_DEPLOY_HOOK is not set"
+            exit 1
+          fi
+          # The URL is a secret, so it is never printed.
+          # --fail makes the step red if Render answers with an error (e.g. 401).
+          curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK" > /dev/null
+          echo "Deploy started on Render"
+
+      - name: Wait for the new version
+        # The hook only starts the deploy. Building the image on Render takes
+        # a few minutes, so we wait before the smoke test starts.
+        run: sleep 180
+
+      - name: Smoke test
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          if [ -z "$APP_URL" ]; then
+            echo "The variable APP_URL is not set"
+            exit 1
+          fi
+          bash scripts/smoke-test.sh "$APP_URL"
