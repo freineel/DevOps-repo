@@ -1,0 +1,15 @@
+# Configuration that is not secret. It reaches the app as environment
+# variables (envFrom in 04-deployment.yaml), the same way as in Compose and on
+# Render. APP_VERSION is NOT set here on purpose: it comes from the image, so
+# after a rolling update /health shows the version of the new image.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: expense-tracker-config
+  namespace: expense-tracker
+  labels:
+    app: expense-tracker
+data:
+  LOG_LEVEL: "INFO"
+  # Two gunicorn workers per pod are fine, all pods share one database.
+  GUNICORN_WORKERS: "2"

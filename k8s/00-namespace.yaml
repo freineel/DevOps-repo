@@ -1,0 +1,11 @@
+# Own namespace for everything that belongs to the expense tracker.
+# The whole app can be removed with: kubectl delete namespace expense-tracker
+#
+# The files in this folder are numbered because "kubectl apply -f k8s/" applies
+# them in alphabetical order, and the namespace has to exist first.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: expense-tracker
+  labels:
+    app: expense-tracker

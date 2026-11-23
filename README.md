@@ -119,6 +119,21 @@ provider. With Docker running and the image built (`make docker-build`):
 
 The state file stays on the machine and is not committed.
 
+## Kubernetes
+
+The app also runs in a local Kubernetes cluster (kind) with two replicas and a
+Postgres pod. The manifests are in [`k8s/`](k8s/README.md):
+
+    make k8s-cluster
+    make k8s-load
+    make k8s-deploy
+    curl http://localhost:30080/health
+
+The database password is not in the repository: `make k8s-deploy` creates the
+Secret in the cluster (random, or `DB_PASSWORD=...`).
+`make k8s-update VERSION=0.2.0` does a rolling update without downtime,
+`make k8s-rollback` goes back to the previous version.
+
 ## Branching strategy
 
 This repository follows GitHub Flow: `main` is always working, every change
