@@ -134,6 +134,12 @@ Secret in the cluster (random, or `DB_PASSWORD=...`).
 `make k8s-update VERSION=0.2.0` does a rolling update without downtime,
 `make k8s-rollback` goes back to the previous version.
 
+## Architecture and decisions
+
+[docs/architecture.md](docs/architecture.md) shows how the parts fit together
+(C4 context and container diagrams). Important decisions and their trade-offs
+are recorded as ADRs in [docs/adr/](docs/adr/).
+
 ## Branching strategy
 
 This repository follows GitHub Flow: `main` is always working, every change
