@@ -1,0 +1,24 @@
+# Stable address for the app pods. Pods come and go and change their IP, the
+# Service stays. It finds the pods by their labels and sends requests only to
+# pods that are READY.
+#
+# Inside the cluster: http://expense-tracker.expense-tracker.svc.cluster.local
+apiVersion: v1
+kind: Service
+metadata:
+  name: expense-tracker
+  namespace: expense-tracker
+  labels:
+    app: expense-tracker
+    component: web
+spec:
+  type: ClusterIP
+  selector:
+    app: expense-tracker
+    component: web
+  ports:
+    - name: http
+      # Port 80 on the Service, port 8000 in the container.
+      port: 80
+      targetPort: 8000
+      protocol: TCP

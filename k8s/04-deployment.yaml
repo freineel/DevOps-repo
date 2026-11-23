@@ -1,0 +1,137 @@
+# The app: desired state "2 pods of expense-tracker:local". The Deployment
+# controller keeps comparing the desired with the actual state and fixes the
+# difference (reconciliation loop): if a pod dies, a new one is started.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expense-tracker
+  namespace: expense-tracker
+  labels:
+    app: expense-tracker
+    component: web
+spec:
+  # At least two replicas (project requirement): one pod can be replaced
+  # during an update while the other one keeps serving requests.
+  replicas: 2
+  # The selector must match the pod labels below, otherwise the Deployment
+  # does not find its own pods.
+  selector:
+    matchLabels:
+      app: expense-tracker
+      component: web
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # During an update at most one extra pod ...
+      maxSurge: 1
+      # ... and never fewer ready pods than "replicas". Together with the
+      # readiness probe no request is lost during an update.
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: expense-tracker
+        component: web
+    spec:
+      # Time between SIGTERM and SIGKILL. Must be longer than the preStop sleep
+      # plus the time gunicorn needs to finish open requests.
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        # Mounted volumes (the /tmp emptyDir) belong to this group, so the
+        # non-root user can write to them.
+        fsGroup: 10001
+      # Wait for the database before the app starts. The app creates its table
+      # on startup and would crash against a database that is still booting.
+      # Same idea as "depends_on: condition: service_healthy" in Compose.
+      initContainers:
+        - name: wait-for-db
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - until pg_isready -h expense-tracker-db -p 5432; do echo waiting for db; sleep 2; done
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      containers:
+        - name: expense-tracker
+          image: expense-tracker:local
+          # The image is loaded into kind with "kind load docker-image", it is
+          # not in a registry. IfNotPresent uses the loaded image and does not
+          # try to pull it (that would end in ErrImagePull).
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: expense-tracker-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: expense-tracker-secret
+                  key: DATABASE_URL
+          lifecycle:
+            preStop:
+              # On shutdown Kubernetes sends SIGTERM and at the same time takes
+              # the pod out of the Service. Both happen in parallel, so for a
+              # moment kube-proxy can still send requests to a pod that is
+              # already stopping (in a test 1 of 101 requests failed). Waiting
+              # 5 seconds first gives the Service time to stop sending traffic.
+              exec:
+                command: ["sh", "-c", "sleep 5"]
+          livenessProbe:
+            # Liveness: is the process still alive? /health does not touch the
+            # database. Otherwise a slow database would make Kubernetes restart
+            # healthy app pods again and again.
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            # Readiness: may this pod get traffic? /ready checks the database.
+            # A pod that is not ready is taken out of the Service, it is not
+            # restarted.
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            # requests: what the scheduler reserves for the pod.
+            # limits: hard upper bound (too much memory => OOMKilled).
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            # Same user as in the Dockerfile (appuser, UID 10001), never root.
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            # Needed because of readOnlyRootFilesystem: gunicorn writes
+            # temporary files to /tmp and does not start without it.
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

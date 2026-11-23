@@ -1,0 +1,19 @@
+# kind cluster for the expense tracker: one control plane and two workers, so
+# the two app replicas can run on different nodes.
+#
+# This is a kind configuration, not a Kubernetes manifest. It is read by
+# "kind create cluster --config k8s/kind/kind-config.yaml". It lives in a
+# subfolder so that "kubectl apply -f k8s/" does not pick it up.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: expense-tracker
+nodes:
+  - role: control-plane
+    # Forward port 30080 from the host to the node, so http://localhost:30080
+    # reaches the NodePort service (06-service-nodeport.yaml).
+    extraPortMappings:
+      - containerPort: 30080
+        hostPort: 30080
+        protocol: TCP
+  - role: worker
+  - role: worker

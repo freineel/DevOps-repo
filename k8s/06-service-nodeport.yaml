@@ -1,0 +1,26 @@
+# Access from the host without port-forward: http://localhost:30080
+#
+# Works together with extraPortMappings in kind/kind-config.yaml. Unlike
+# "kubectl port-forward", which is bound to one pod, the NodePort goes through
+# kube-proxy to all ready pods. So it keeps working while pods are replaced,
+# which is what we need to show a rolling update without downtime.
+apiVersion: v1
+kind: Service
+metadata:
+  name: expense-tracker-nodeport
+  namespace: expense-tracker
+  labels:
+    app: expense-tracker
+    component: web
+spec:
+  type: NodePort
+  selector:
+    app: expense-tracker
+    component: web
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+      # Allowed range 30000-32767, must match kind/kind-config.yaml.
+      nodePort: 30080
+      protocol: TCP

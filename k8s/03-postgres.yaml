@@ -1,0 +1,117 @@
+# The database: one Postgres pod with a persistent volume and a Service.
+#
+# Why a database in the cluster at all: with two or more app replicas and the
+# in-memory store, every pod would have its own list of expenses. A POST that
+# lands on pod A would be missing on pod B. With one shared database all
+# replicas see the same data, and the readiness probe (/ready) checks a real
+# dependency.
+#
+# One replica only: Postgres cannot simply be scaled like the app. For a real
+# setup one would use a StatefulSet or a managed database.
+
+# Storage request. kind ships a default StorageClass ("standard") that creates
+# the volume on the node automatically.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: expense-tracker-db-data
+  namespace: expense-tracker
+  labels:
+    app: expense-tracker
+    component: db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expense-tracker-db
+  namespace: expense-tracker
+  labels:
+    app: expense-tracker
+    component: db
+spec:
+  replicas: 1
+  # Recreate instead of RollingUpdate: two Postgres pods must never use the
+  # same data volume at the same time.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: expense-tracker
+      component: db
+  template:
+    metadata:
+      labels:
+        app: expense-tracker
+        component: db
+    spec:
+      containers:
+        - name: postgres
+          # Same image as in docker-compose.yml: fixed major version, alpine.
+          image: postgres:16-alpine
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: expenses
+            - name: POSTGRES_DB
+              value: expenses
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: expense-tracker-secret
+                  key: POSTGRES_PASSWORD
+            # Postgres refuses a data directory that is not empty. The volume
+            # root can contain "lost+found", so the data goes into a subfolder.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "expenses", "-d", "expenses"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "expenses", "-d", "expenses"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: expense-tracker-db-data
+---
+# Stable name for the database inside the cluster: expense-tracker-db:5432.
+# ClusterIP only, the database is not reachable from outside the cluster.
+apiVersion: v1
+kind: Service
+metadata:
+  name: expense-tracker-db
+  namespace: expense-tracker
+  labels:
+    app: expense-tracker
+    component: db
+spec:
+  type: ClusterIP
+  selector:
+    app: expense-tracker
+    component: db
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
