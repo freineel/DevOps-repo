@@ -1,7 +1,8 @@
 .DEFAULT_GOAL := help
 
 .PHONY: help install run test cov lint fmt clean docker-build up down logs \
-        k8s-cluster k8s-load k8s-secret k8s-deploy k8s-status k8s-update k8s-rollback k8s-clean
+        k8s-cluster k8s-load k8s-secret k8s-deploy k8s-status k8s-update k8s-rollback k8s-clean \
+        monitoring-up monitoring-down load
 
 help: ## Show this help
 	@grep -E '^[a-z0-9-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -93,3 +94,19 @@ k8s-rollback: ## Undo the last rollout of the app
 
 k8s-clean: ## Delete the kind cluster
 	kind delete cluster --name $(K8S_CLUSTER)
+
+# --- Monitoring (Prometheus + Grafana) ---------------------------------------
+# Runs the normal stack plus the monitoring add-on, see MONITORING.md.
+COMPOSE_MONITORING := docker compose -f docker-compose.yml -f docker-compose.monitoring.yml
+# Target and size of the load test, e.g. make load ROUNDS=500
+LOAD_URL ?= http://localhost:8000
+ROUNDS   ?= 200
+
+monitoring-up: ## Start app, db, Prometheus (:9090) and Grafana (:3000)
+	$(COMPOSE_MONITORING) up --build --detach
+
+monitoring-down: ## Stop the monitoring stack (data stays in the volumes)
+	$(COMPOSE_MONITORING) down
+
+load: ## Generate HTTP load for the dashboard (ROUNDS=200)
+	scripts/load-test.sh $(LOAD_URL) $(ROUNDS)
