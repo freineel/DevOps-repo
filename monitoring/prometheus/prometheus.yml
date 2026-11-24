@@ -1,0 +1,28 @@
+# Prometheus configuration for the Expense Tracker.
+# Started by docker-compose.monitoring.yml (make monitoring-up).
+# https://prometheus.io/docs/prometheus/latest/configuration/configuration/
+
+global:
+  # Pull model: Prometheus fetches /metrics from every target every 15 seconds.
+  scrape_interval: 15s
+  # How often the alert rules below are checked.
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alert.rules.yml
+
+scrape_configs:
+  # Our app. "web" is the compose service name and resolves to the app
+  # container inside the compose network. Not "localhost": inside the
+  # Prometheus container that would be Prometheus itself.
+  - job_name: expense-tracker
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - web:8000
+
+  # Prometheus scrapes itself, so we can see that it is healthy.
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
