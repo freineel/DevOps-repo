@@ -1,0 +1,17 @@
+# Grafana loads every *.json dashboard from this folder on start.
+# https://grafana.com/docs/grafana/latest/administration/provisioning/#dashboards
+#
+# The JSON file in the repo is the source of truth. Changes made in the UI can
+# be saved, but they only last if the JSON is exported back into the repo.
+
+apiVersion: 1
+
+providers:
+  - name: expense-tracker
+    orgId: 1
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/dashboards
