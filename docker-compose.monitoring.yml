@@ -1,0 +1,59 @@
+# Monitoring add-on: Prometheus + Grafana next to the normal stack.
+# It is used TOGETHER with docker-compose.yml, Compose merges both files:
+#   docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up --build -d
+# or simply: make monitoring-up
+#
+# Separate file on purpose: "make up" stays a lean 2-container stack for
+# development, monitoring is switched on only when needed.
+#
+# Ports are bound to 127.0.0.1, so Prometheus and Grafana (default login
+# admin/admin) are only reachable from this machine, not from the network.
+
+services:
+  # Override for the existing web service from docker-compose.yml.
+  web:
+    environment:
+      # Every Gunicorn worker is its own process with its own metric counters.
+      # Prometheus would hit a random worker on each scrape and the curves
+      # would jump. One worker keeps the numbers consistent (enough locally).
+      GUNICORN_WORKERS: "1"
+
+  prometheus:
+    # Fixed version, never :latest (same rule as for postgres).
+    image: prom/prometheus:v2.55.1
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      # :ro = read-only, the container cannot change our config.
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+      # Named volume: collected metrics survive a restart.
+      - prometheus-data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    depends_on:
+      - web
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      # Local default only. Set GRAFANA_ADMIN_PASSWORD (e.g. in .env) to change it.
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      # Datasource and dashboard are provisioned from the repo, no clicking.
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:

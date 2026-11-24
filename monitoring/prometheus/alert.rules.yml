@@ -1,0 +1,73 @@
+# Alert rules for the Expense Tracker.
+# All rules fire on SYMPTOMS a user would notice (app unreachable, errors,
+# slow answers), not on internal causes like CPU usage.
+# What to do when a rule fires is described in MONITORING.md (runbook).
+# https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/
+
+groups:
+  - name: expense-tracker
+    rules:
+      # Prometheus cannot scrape the app at all: container stopped, crashed
+      # or network broken. "up" is created by Prometheus for every target.
+      # for: 1m -> one missed scrape (e.g. during a restart) is not enough.
+      - alert: ExpenseTrackerDown
+        expr: up{job="expense-tracker"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Expense Tracker is not reachable"
+          description: "Prometheus could not scrape {{ $labels.instance }} for more than 1 minute."
+
+      # More than 5 % of all requests end in a server error (5xx).
+      # 4xx are left out on purpose: they are client mistakes (wrong input,
+      # unknown id), not a defect of our service.
+      # Without any traffic both sums are 0, 0/0 = NaN and NaN > 0.05 is
+      # false, so the rule stays silent. A full outage is caught by
+      # ExpenseTrackerDown instead.
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(flask_http_request_total{status=~"5.."}[5m]))
+            /
+          sum(rate(flask_http_request_total[5m]))
+            > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 5xx error rate on the Expense Tracker"
+          description: "{{ $value | humanizePercentage }} of requests returned a 5xx status over the last 5 minutes (threshold 5 %)."
+
+      # 95 % of requests should be faster than 1 second. The p95 is
+      # estimated from the histogram buckets, so it is an approximation.
+      - alert: HighLatencyP95
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(flask_http_request_duration_seconds_bucket[5m]))
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p95 latency on the Expense Tracker"
+          description: "p95 latency is {{ $value | humanizeDuration }} over the last 5 minutes (threshold 1s)."
+
+      # Own rule: the summary endpoint adds up ALL expenses on every call, so
+      # it is the first endpoint that gets slow when the data grows. A user
+      # notices this as a slow monthly report long before the other
+      # endpoints are affected, so it gets its own, tighter threshold.
+      # for: 10m -> only a lasting slowdown matters, not a single slow call.
+      # url_rule = route template, set by group_by="url_rule" in app/__init__.py.
+      - alert: SlowSummaryEndpoint
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(flask_http_request_duration_seconds_bucket{url_rule="/api/expenses/summary"}[5m]))
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Summary endpoint is slow"
+          description: "p95 of /api/expenses/summary is {{ $value | humanizeDuration }} (threshold 0.5s) for 10 minutes."

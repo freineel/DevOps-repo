@@ -1,0 +1,18 @@
+# Grafana datasource, created automatically when Grafana starts.
+# https://grafana.com/docs/grafana/latest/administration/provisioning/#datasources
+#
+# The fixed uid "prometheus" lets the dashboard JSON point at this datasource,
+# so nothing has to be selected by hand after an import.
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    # proxy: the Grafana server talks to Prometheus, not the browser.
+    access: proxy
+    # Compose service name. Not localhost:9090, that would be Grafana itself.
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
