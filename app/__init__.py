@@ -35,7 +35,12 @@ def create_app(
     app.extensions["app_config"] = config
     app.extensions["repository"] = repository or create_repository(config)
 
-    metrics = PrometheusMetrics(app, registry=registry)
+    # group_by="url_rule": label the request metrics with the route template
+    # ("/api/expenses/<int:expense_id>") instead of the real path
+    # ("/api/expenses/17"). With the real path every id, and every random URL
+    # a scanner tries, would create new time series (cardinality explosion).
+    # Unknown URLs are all counted under url_rule="None".
+    metrics = PrometheusMetrics(app, registry=registry, group_by="url_rule")
     metrics.info("expense_tracker_info", "Application info", version=config.version)
 
     from app.routes import bp
