@@ -332,8 +332,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum by (le, path) (rate(flask_http_request_duration_seconds_bucket[5m])))",
-          "legendFormat": "{{path}}"
+          "expr": "histogram_quantile(0.95, sum by (le, url_rule) (rate(flask_http_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "{{url_rule}}"
         }
       ]
     },

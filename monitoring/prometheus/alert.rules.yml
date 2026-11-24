@@ -58,11 +58,12 @@ groups:
       # notices this as a slow monthly report long before the other
       # endpoints are affected, so it gets its own, tighter threshold.
       # for: 10m -> only a lasting slowdown matters, not a single slow call.
+      # url_rule = route template, set by group_by="url_rule" in app/__init__.py.
       - alert: SlowSummaryEndpoint
         expr: |
           histogram_quantile(
             0.95,
-            sum by (le) (rate(flask_http_request_duration_seconds_bucket{path="/api/expenses/summary"}[5m]))
+            sum by (le) (rate(flask_http_request_duration_seconds_bucket{url_rule="/api/expenses/summary"}[5m]))
           ) > 0.5
         for: 10m
         labels:
