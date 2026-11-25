@@ -1,0 +1,71 @@
+# Security scan with Trivy.
+#
+# Runs on every pull request, on every push to main and once a week, because
+# new CVEs are published even when our code does not change.
+# One job, three steps:
+#   report - full list of all findings in the log (never fails)
+#   gate   - fails the job on HIGH/CRITICAL findings that have a fix
+#   secret - fails the job if a password, token or key is found in the repo
+#
+# Threshold (documented in MONITORING.md and docs/adr/0004):
+#   HIGH + CRITICAL, only findings with a fixed version (--ignore-unfixed).
+#   A finding without a fix cannot be solved by us, blocking every pull
+#   request because of it would only teach us to ignore the gate.
+#
+# Trivy runs from its official Docker image with a fixed version instead of
+# a third-party action, so we can see exactly what is executed.
+
+name: Trivy scan
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Every Monday at 06:00 UTC.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+# Only reads the code (least privilege).
+permissions:
+  contents: read
+
+env:
+  TRIVY_IMAGE: aquasec/trivy:0.76.2
+  APP_IMAGE: expense-tracker:scan
+
+jobs:
+  scan:
+    name: Trivy scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Build the Docker image
+        # --pull: always start from the newest python:3.12-slim, so OS fixes
+        # in the base image are picked up.
+        run: docker build --pull -t "$APP_IMAGE" .
+
+      - name: Report all findings
+        # Only for the log, so we see the full picture incl. MEDIUM/LOW and
+        # findings without a fix. --exit-code 0: this step never fails.
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            -v trivy-cache:/root/.cache/trivy "$TRIVY_IMAGE" \
+            image --exit-code 0 "$APP_IMAGE"
+
+      - name: Gate - fail on HIGH/CRITICAL with a fix
+        # --exit-code 1 turns the report into a gate: one finding -> red job
+        # -> the pull request cannot be merged.
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            -v trivy-cache:/root/.cache/trivy "$TRIVY_IMAGE" \
+            image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 "$APP_IMAGE"
+
+      - name: Secret scan of the repository
+        # Looks for passwords, tokens and keys in the checked-out files.
+        run: |
+          docker run --rm -v "$PWD:/src:ro" \
+            -v trivy-cache:/root/.cache/trivy "$TRIVY_IMAGE" \
+            fs --scanners secret --exit-code 1 /src
