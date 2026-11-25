@@ -131,7 +131,7 @@ Postgres pod. The manifests are in [`k8s/`](k8s/README.md):
 
 The database password is not in the repository: `make k8s-deploy` creates the
 Secret in the cluster (random, or `DB_PASSWORD=...`).
-`make k8s-update VERSION=0.2.0` does a rolling update without downtime,
+`make k8s-update VERSION=1.1.0` does a rolling update without downtime,
 `make k8s-rollback` goes back to the previous version.
 
 ## Monitoring

@@ -47,14 +47,14 @@ logs: ## Show the logs of app and database
 # First run: make k8s-cluster -> make k8s-load -> make k8s-deploy -> make k8s-status
 K8S_CLUSTER   := expense-tracker
 K8S_NAMESPACE := expense-tracker
-# New version for k8s-update, e.g. make k8s-update VERSION=0.2.0
-VERSION ?= 0.2.0
+# New version for k8s-update, e.g. make k8s-update VERSION=1.1.0
+VERSION ?= 1.1.0
 
 k8s-cluster: ## Create the kind cluster (1 control plane, 2 workers)
 	kind create cluster --config k8s/kind/kind-config.yaml
 
 k8s-load: ## Build expense-tracker:local and load it into the kind cluster
-	docker build -t expense-tracker:local --build-arg APP_VERSION=0.1.0 .
+	docker build -t expense-tracker:local --build-arg APP_VERSION=1.0.0 .
 	kind load docker-image expense-tracker:local --name $(K8S_CLUSTER)
 
 # The database password is not stored in the repository. k8s-secret creates the
@@ -82,7 +82,7 @@ k8s-status: ## Show pods (with node), deployments and services
 	kubectl -n $(K8S_NAMESPACE) get pods -o wide
 	kubectl -n $(K8S_NAMESPACE) get deployments,services
 
-k8s-update: ## Rolling update to a new image version (VERSION=0.2.0)
+k8s-update: ## Rolling update to a new image version (VERSION=1.1.0)
 	docker build -t expense-tracker:$(VERSION) --build-arg APP_VERSION=$(VERSION) .
 	kind load docker-image expense-tracker:$(VERSION) --name $(K8S_CLUSTER)
 	kubectl -n $(K8S_NAMESPACE) set image deployment/expense-tracker expense-tracker=expense-tracker:$(VERSION)

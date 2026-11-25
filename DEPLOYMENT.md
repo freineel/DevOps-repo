@@ -139,7 +139,7 @@ Auto-deploy on every push is turned off in `render.yaml`
 1. Health check:
 
        curl <APP_URL>/health
-       # expected: {"status":"ok","version":"0.1.0"}
+       # expected: {"status":"ok","version":"1.0.0"}
 
    If the service was asleep, the first call can take up to a minute.
 
@@ -151,7 +151,7 @@ Auto-deploy on every push is turned off in `render.yaml`
 
        Target: <APP_URL>
        == 1/5 /health ==
-         OK (attempt 1): {"status":"ok","version":"0.1.0"}
+         OK (attempt 1): {"status":"ok","version":"1.0.0"}
        == 2/5 /ready ==
          OK: {"status":"ready"}
        == 3/5 POST /api/expenses ==
