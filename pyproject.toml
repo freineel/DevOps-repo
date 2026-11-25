@@ -1,6 +1,6 @@
 [project]
 name = "expense-tracker"
-version = "0.1.0"
+version = "1.0.0"
 description = "Expense tracker REST API, semester project for module CDS212 (DevOps)"
 requires-python = ">=3.12"
 

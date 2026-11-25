@@ -40,7 +40,7 @@ services:
         value: "1"
       # Shown in /health, so we can see from outside which version runs.
       - key: APP_VERSION
-        value: "0.1.0"
+        value: "1.0.0"
       - key: LOG_LEVEL
         value: INFO
       # DATABASE_URL is not set on purpose: the free Postgres on Render is

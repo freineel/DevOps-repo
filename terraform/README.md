@@ -43,7 +43,7 @@ keeps building (Docker, CI) and infrastructure (Terraform) apart.
 | --- | --- | --- |
 | `host_port` | `8080` | Port on the host, only 1025 to 65535 allowed |
 | `image_tag` | `local` | Tag of the image `expense-tracker:<tag>` |
-| `app_version` | `0.1.0-terraform` | Version the app shows on `/health` |
+| `app_version` | `1.0.0-terraform` | Version the app shows on `/health` |
 | `log_level` | `INFO` | `DEBUG`, `INFO`, `WARNING` or `ERROR` |
 | `db_password` | `changeme` | Password of the Postgres user (sensitive) |
 | `name_prefix` | `expense-tracker-tf` | Prefix for container, network and volume names |

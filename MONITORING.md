@@ -115,7 +115,7 @@ interpolated, so 4.75 ms means "below the 5 ms bucket", not an exact value.
 | Metric | `expense_tracker_info` |
 | PromQL | `expense_tracker_info` |
 | Question | Which version is running? |
-| Normal | The version from `APP_VERSION`, locally `0.1.0-local`. |
+| Normal | The version from `APP_VERSION`, locally `1.0.0-local`. |
 | Act when | After a deploy the old version is still shown, or the panel is empty (target down). |
 
 ### p95 latency per endpoint (s)

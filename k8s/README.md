@@ -61,8 +61,8 @@ the namespace can read the password:
 
 ## Rolling update and rollback
 
-    make k8s-update VERSION=0.2.0   # build, load, kubectl set image, wait
-    curl http://localhost:30080/health   # shows "version": "0.2.0"
+    make k8s-update VERSION=1.1.0   # build, load, kubectl set image, wait
+    curl http://localhost:30080/health   # shows "version": "1.1.0"
     make k8s-rollback               # kubectl rollout undo
 
 No request is lost during an update because of these settings in

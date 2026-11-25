@@ -29,7 +29,7 @@ variable "image_tag" {
 variable "app_version" {
   type        = string
   description = "Version the app reports on /health."
-  default     = "0.1.0-terraform"
+  default     = "1.0.0-terraform"
 }
 
 variable "log_level" {
