@@ -19,6 +19,16 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 FROM base AS runtime
+# Install Debian security updates that are newer than the base image, so the
+# Trivy gate does not fail on OS packages that already have a fix
+# (see docs/adr/0004). The apt lists are deleted again in the same layer.
+# pip is only needed to install the packages (builder stage). The app never
+# calls it, so it goes: Trivy no longer reports pip's CVEs, and nobody can
+# install extra packages inside the running container.
+RUN apt-get update \
+    && apt-get upgrade --yes --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m pip uninstall --yes pip
 # Never run as root: a container escape as root is close to root on the host.
 RUN useradd --create-home --uid 10001 appuser
 
