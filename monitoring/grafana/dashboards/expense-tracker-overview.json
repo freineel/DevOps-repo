@@ -117,7 +117,8 @@
             "showPoints": "never",
             "thresholdsStyle": {
               "mode": "line"
-            }
+            },
+            "axisSoftMax": 0.1
           }
         },
         "overrides": []
