@@ -134,6 +134,32 @@ Secret in the cluster (random, or `DB_PASSWORD=...`).
 `make k8s-update VERSION=0.2.0` does a rolling update without downtime,
 `make k8s-rollback` goes back to the previous version.
 
+## Monitoring
+
+Prometheus and Grafana run next to the Compose stack:
+
+    make monitoring-up
+    make load            # some test traffic for the dashboard
+    make monitoring-down
+
+Prometheus (http://localhost:9090) scrapes `/metrics` every 15 seconds and
+evaluates four alert rules. Grafana (http://localhost:3000, local login
+`admin` / `admin`) shows the dashboard "Expense Tracker Overview" with request
+rate, error rate and latency. The dashboard is stored as JSON in
+[`monitoring/`](monitoring/) and loaded automatically.
+[MONITORING.md](MONITORING.md) explains every panel, the alert thresholds,
+the SLOs and what to do when an alert fires.
+
+## Security
+
+The workflow [`.github/workflows/trivy-scan.yml`](.github/workflows/trivy-scan.yml)
+scans the Docker image with Trivy on every pull request, on every push to
+`main` and once a week. It fails on HIGH or CRITICAL findings that have a fix,
+and it also searches the repository for secrets. The threshold is explained
+in [ADR 0004](docs/adr/0004-trivy-gate-threshold.md), the current findings in
+[MONITORING.md](MONITORING.md#security-scan-trivy). Passwords and tokens are
+never stored in the repository.
+
 ## Architecture and decisions
 
 [docs/architecture.md](docs/architecture.md) shows how the parts fit together
