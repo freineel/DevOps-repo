@@ -216,6 +216,7 @@ Limits of a rollback:
 | All expenses are gone after a while | In-memory storage: the data is lost on every deploy, restart or sleep | Expected on the free plan without database (see part F) |
 | CD workflow fails with "The secret RENDER_DEPLOY_HOOK is not set" | Secret missing in GitHub or wrong name | Create the secret as in D2, name exactly `RENDER_DEPLOY_HOOK` |
 | CD step "Trigger deploy" fails with `401` | Deploy hook URL is wrong or was created again in Render | Copy the current hook from Render and update the secret |
+| A value changed in `render.yaml` (e.g. `APP_VERSION`) does not show up on Render after the deploy | The deploy hook only builds the new code. Changes to the Blueprint itself are only applied by a Blueprint sync | Render -> **Blueprints** -> `expense-tracker` -> **Manual sync**, check the listed changes, **Approve**. Render deploys again with the new values |
 | Smoke test fails with "/health did not answer with 200" | Wrong `APP_URL` (e.g. typo or slash at the end) or the build on Render takes longer than usual | Check the variable `APP_URL`, look at the Render logs, run the CD workflow again by hand |
 
 If a secret was ever printed in a log or committed: create a new one at once
