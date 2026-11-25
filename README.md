@@ -1,6 +1,8 @@
 # Expense Tracker
 
 [![CI](https://github.com/freineel/DevOps-repo/actions/workflows/ci.yml/badge.svg)](https://github.com/freineel/DevOps-repo/actions/workflows/ci.yml)
+[![CD](https://github.com/freineel/DevOps-repo/actions/workflows/cd.yml/badge.svg)](https://github.com/freineel/DevOps-repo/actions/workflows/cd.yml)
+[![Trivy scan](https://github.com/freineel/DevOps-repo/actions/workflows/trivy-scan.yml/badge.svg)](https://github.com/freineel/DevOps-repo/actions/workflows/trivy-scan.yml)
 
 Expense Tracker is a small web app for recording personal expenses and seeing
 where the money goes each month. You enter an amount, a category and a date,
@@ -14,23 +16,29 @@ accounts, budgets, multiple currencies and a web frontend are out of scope.
 
 ## Prerequisites
 
-- Git
-- Python 3.12 or newer
-- Docker (needed from week 4)
+- Git, `make` and `curl`
+- Python 3.12 or newer (on Ubuntu also `python3.12-venv`)
+- Docker with Docker Compose v2 (for the container, Compose and monitoring parts)
+- Optional: Terraform 1.9 or newer, kind and kubectl (only for the
+  Terraform and Kubernetes parts)
+
+Tested on Ubuntu 24.04 in WSL2 with Docker Desktop.
 
 The app uses Flask, served by Gunicorn in the container. Tests run with pytest,
 linting with ruff.
 
 ## Setup
 
-    git clone git@github.com:freineel/DevOps-repo.git
+    git clone https://github.com/freineel/DevOps-repo.git
     cd DevOps-repo
     python3 -m venv .venv
     source .venv/bin/activate
     make install
     make run
 
-`make help` lists all targets (tests, coverage, lint, formatting).
+`make run` starts the development server on http://localhost:8000
+(`curl localhost:8000/health`). `make test` runs the tests, `make help` lists
+all targets.
 
 ## Container
 
@@ -45,7 +53,7 @@ the unprivileged user `appuser`. Compared with a naive Dockerfile
 | Image | Size on disk | Runs as |
 | --- | ---: | --- |
 | naive | 1.63 GB | root |
-| optimized | 188 MB | appuser |
+| optimized | 209 MB | appuser |
 
 What makes the difference:
 
@@ -59,6 +67,9 @@ What makes the difference:
   `pip install`.
 - **Non-root user and `.dockerignore`.** The process runs as `appuser`, and
   `.git`, `.venv`, tests and `.env` never reach the build context.
+- **Security updates, no pip.** The runtime stage installs Debian security
+  updates and removes `pip`, which the app does not need at runtime (see
+  [ADR 0004](docs/adr/0004-trivy-gate-threshold.md)).
 
 ## App and database with Docker Compose
 
@@ -82,7 +93,9 @@ Every pull request and every push to `main` runs the pipeline in
 | Build image | `docker build`, then the container must answer on `/health` |
 
 `main` is protected: a pull request can only be merged when all three jobs
-are green.
+are green. Pull request #6 shows a red pipeline blocking the merge
+([screenshot](docs/evidence/ci-red-blocks-merge.png)). The Trivy scan runs
+as a separate workflow, see [Security](#security).
 
 The tests in `tests/test_postgres_repository.py` need a database. They run in
 the pipeline and are skipped locally unless `TEST_DATABASE_URL` is set.
@@ -173,7 +186,10 @@ goes through a short-lived branch and a pull request with green CI. Branch
 names, commit messages and the pull request checklist are described in
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Roadmap
+## Milestones
+
+The project grew with the course, one milestone per week. All of them are
+done, the evidence is collected in [docs/evidence/](docs/evidence/).
 
 | Week | Topic | Result in this repository |
 | ---: | --- | --- |
@@ -215,4 +231,23 @@ Example:
 
     curl localhost:8000/api/expenses/summary
 
+## Documentation
 
+- [docs/architecture.md](docs/architecture.md): C4 context and container diagrams
+- [DEPLOYMENT.md](DEPLOYMENT.md): runbook for deployment, rollback and troubleshooting
+- [MONITORING.md](MONITORING.md): metrics, dashboard, alerts, SLOs, security scan
+- [docs/adr/](docs/adr/): architecture decision records
+- [CONTRIBUTING.md](CONTRIBUTING.md): branching, commits, self-review
+- [BEWERTUNG.md](BEWERTUNG.md): self-assessment against the course criteria
+
+## Author
+
+| Name | GitHub | Module |
+| --- | --- | --- |
+| Neel Frei | [@freineel](https://github.com/freineel) | CDS212 IT Development and Operations, FHGR |
+
+**AI tools:** Claude Code (Anthropic) was used during the whole project as an
+assistant: to explain course topics, to write first versions of configuration
+files, code, tests and documentation, and to run and check commands. All
+changes went through pull requests with a green pipeline. Details in
+[BEWERTUNG.md](BEWERTUNG.md#eingesetzte-ki-werkzeuge).

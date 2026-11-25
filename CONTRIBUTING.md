@@ -13,7 +13,8 @@ it is protected by a branch protection rule.
 2. Commit, push and open a **pull request**.
 3. Review your own change in the pull request (checklist below) and write the
    result into the pull request description.
-4. Wait until the CI pipeline is **green** (Lint, Test, Build image).
+4. Wait until all checks are **green** (Lint, Test, Build image and the
+   Trivy scan).
 5. Merge into `main` and delete the branch.
 
 ```bash
