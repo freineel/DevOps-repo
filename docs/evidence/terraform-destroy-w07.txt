@@ -1,0 +1,265 @@
+docker_volume.db_data: Refreshing state... [id=expense-tracker-tf-db-data]
+docker_image.app: Refreshing state... [id=sha256:7b8229e16559d6065c47abce14d202fcd728d94bfaa2133c4dee964f497a2af8expense-tracker:local]
+docker_image.postgres: Refreshing state... [id=sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139postgres:16-alpine]
+docker_network.app: Refreshing state... [id=2351b0cbe6899506ba071ff74e7872a9047f5e35d77450efd28ac942f3f90b19]
+docker_container.db: Refreshing state... [id=9db95997bfa2d9d1ab023e3ec53aa514fab56aebd7bccc85c20bd192eee608d1]
+docker_container.web: Refreshing state... [id=847983d71e30a5de73b03ae103a82c0a431872778ffe22c7cdf4a7f7057684b0]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  - destroy
+
+Terraform will perform the following actions:
+
+  # docker_container.db will be destroyed
+  - resource "docker_container" "db" {
+      - attach                                      = false -> null
+      - command                                     = [
+          - "postgres",
+        ] -> null
+      - container_read_refresh_timeout_milliseconds = 15000 -> null
+      - cpu_shares                                  = 0 -> null
+      - dns                                         = [] -> null
+      - dns_opts                                    = [] -> null
+      - dns_search                                  = [] -> null
+      - entrypoint                                  = [
+          - "docker-entrypoint.sh",
+        ] -> null
+      - env                                         = (sensitive value) -> null
+      - group_add                                   = [] -> null
+      - hostname                                    = "9db95997bfa2" -> null
+      - id                                          = "9db95997bfa2d9d1ab023e3ec53aa514fab56aebd7bccc85c20bd192eee608d1" -> null
+      - image                                       = "sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139" -> null
+      - init                                        = false -> null
+      - ipc_mode                                    = "private" -> null
+      - log_driver                                  = "local" -> null
+      - log_opts                                    = {} -> null
+      - logs                                        = false -> null
+      - max_retry_count                             = 0 -> null
+      - memory                                      = 0 -> null
+      - memory_reservation                          = 0 -> null
+      - memory_swap                                 = 0 -> null
+      - must_run                                    = true -> null
+      - name                                        = "expense-tracker-tf-db" -> null
+      - network_data                                = [
+          - {
+              - gateway                   = "172.18.0.1"
+              - global_ipv6_prefix_length = 0
+              - ip_address                = "172.18.0.2"
+              - ip_prefix_length          = 16
+              - mac_address               = "8e:fb:67:d6:1a:85"
+              - network_name              = "expense-tracker-tf-net"
+                # (2 unchanged attributes hidden)
+            },
+        ] -> null
+      - network_mode                                = "bridge" -> null
+      - privileged                                  = false -> null
+      - publish_all_ports                           = false -> null
+      - read_only                                   = false -> null
+      - remove_volumes                              = true -> null
+      - restart                                     = "unless-stopped" -> null
+      - rm                                          = false -> null
+      - runtime                                     = "runc" -> null
+      - security_opts                               = [] -> null
+      - shm_size                                    = 64 -> null
+      - start                                       = true -> null
+      - stdin_open                                  = false -> null
+      - stop_signal                                 = "SIGINT" -> null
+      - stop_timeout                                = 0 -> null
+      - storage_opts                                = {} -> null
+      - sysctls                                     = {} -> null
+      - tmpfs                                       = {} -> null
+      - tty                                         = false -> null
+      - wait                                        = true -> null
+      - wait_timeout                                = 60 -> null
+      - working_dir                                 = "/" -> null
+        # (6 unchanged attributes hidden)
+
+      - healthcheck {
+          - interval       = "5s" -> null
+          - retries        = 10 -> null
+          - start_interval = "0s" -> null
+          - start_period   = "0s" -> null
+          - test           = [
+              - "CMD-SHELL",
+              - "pg_isready -U expenses -d expenses",
+            ] -> null
+          - timeout        = "3s" -> null
+        }
+
+      - networks_advanced {
+          - aliases      = [] -> null
+          - name         = "expense-tracker-tf-net" -> null
+            # (3 unchanged attributes hidden)
+        }
+
+      - volumes {
+          - container_path = "/var/lib/postgresql/data" -> null
+          - read_only      = false -> null
+          - volume_name    = "expense-tracker-tf-db-data" -> null
+            # (2 unchanged attributes hidden)
+        }
+    }
+
+  # docker_container.web will be destroyed
+  - resource "docker_container" "web" {
+      - attach                                      = false -> null
+      - command                                     = [
+          - "sh",
+          - "-c",
+          - "exec gunicorn --bind 0.0.0.0:8000 --workers ${GUNICORN_WORKERS} --access-logfile - wsgi:app",
+        ] -> null
+      - container_read_refresh_timeout_milliseconds = 15000 -> null
+      - cpu_shares                                  = 0 -> null
+      - dns                                         = [] -> null
+      - dns_opts                                    = [] -> null
+      - dns_search                                  = [] -> null
+      - entrypoint                                  = [] -> null
+      - env                                         = (sensitive value) -> null
+      - group_add                                   = [] -> null
+      - hostname                                    = "847983d71e30" -> null
+      - id                                          = "847983d71e30a5de73b03ae103a82c0a431872778ffe22c7cdf4a7f7057684b0" -> null
+      - image                                       = "sha256:7b8229e16559d6065c47abce14d202fcd728d94bfaa2133c4dee964f497a2af8" -> null
+      - init                                        = false -> null
+      - ipc_mode                                    = "private" -> null
+      - log_driver                                  = "local" -> null
+      - log_opts                                    = {} -> null
+      - logs                                        = false -> null
+      - max_retry_count                             = 0 -> null
+      - memory                                      = 0 -> null
+      - memory_reservation                          = 0 -> null
+      - memory_swap                                 = 0 -> null
+      - must_run                                    = true -> null
+      - name                                        = "expense-tracker-tf-web" -> null
+      - network_data                                = [
+          - {
+              - gateway                   = "172.18.0.1"
+              - global_ipv6_prefix_length = 0
+              - ip_address                = "172.18.0.3"
+              - ip_prefix_length          = 16
+              - mac_address               = "ce:4d:92:7a:5d:7b"
+              - network_name              = "expense-tracker-tf-net"
+                # (2 unchanged attributes hidden)
+            },
+        ] -> null
+      - network_mode                                = "bridge" -> null
+      - privileged                                  = false -> null
+      - publish_all_ports                           = false -> null
+      - read_only                                   = false -> null
+      - remove_volumes                              = true -> null
+      - restart                                     = "unless-stopped" -> null
+      - rm                                          = false -> null
+      - runtime                                     = "runc" -> null
+      - security_opts                               = [] -> null
+      - shm_size                                    = 64 -> null
+      - start                                       = true -> null
+      - stdin_open                                  = false -> null
+      - stop_timeout                                = 0 -> null
+      - storage_opts                                = {} -> null
+      - sysctls                                     = {} -> null
+      - tmpfs                                       = {} -> null
+      - tty                                         = false -> null
+      - user                                        = "appuser" -> null
+      - wait                                        = false -> null
+      - wait_timeout                                = 60 -> null
+      - working_dir                                 = "/app" -> null
+        # (6 unchanged attributes hidden)
+
+      - healthcheck {
+          - interval       = "30s" -> null
+          - retries        = 3 -> null
+          - start_interval = "0s" -> null
+          - start_period   = "5s" -> null
+          - test           = [
+              - "CMD-SHELL",
+              - "python -c \"import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health').status == 200 else 1)\"",
+            ] -> null
+          - timeout        = "3s" -> null
+        }
+
+      - networks_advanced {
+          - aliases      = [] -> null
+          - name         = "expense-tracker-tf-net" -> null
+            # (3 unchanged attributes hidden)
+        }
+
+      - ports {
+          - external = 8080 -> null
+          - internal = 8000 -> null
+          - ip       = "0.0.0.0" -> null
+          - protocol = "tcp" -> null
+        }
+    }
+
+  # docker_image.app will be destroyed
+  - resource "docker_image" "app" {
+      - id           = "sha256:7b8229e16559d6065c47abce14d202fcd728d94bfaa2133c4dee964f497a2af8expense-tracker:local" -> null
+      - image_id     = "sha256:7b8229e16559d6065c47abce14d202fcd728d94bfaa2133c4dee964f497a2af8" -> null
+      - keep_locally = true -> null
+      - name         = "expense-tracker:local" -> null
+      - repo_digest  = "expense-tracker@sha256:7b8229e16559d6065c47abce14d202fcd728d94bfaa2133c4dee964f497a2af8" -> null
+    }
+
+  # docker_image.postgres will be destroyed
+  - resource "docker_image" "postgres" {
+      - id           = "sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139postgres:16-alpine" -> null
+      - image_id     = "sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139" -> null
+      - keep_locally = true -> null
+      - name         = "postgres:16-alpine" -> null
+      - repo_digest  = "postgres@sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139" -> null
+    }
+
+  # docker_network.app will be destroyed
+  - resource "docker_network" "app" {
+      - attachable   = false -> null
+      - driver       = "bridge" -> null
+      - id           = "2351b0cbe6899506ba071ff74e7872a9047f5e35d77450efd28ac942f3f90b19" -> null
+      - ingress      = false -> null
+      - internal     = false -> null
+      - ipam_driver  = "default" -> null
+      - ipam_options = {} -> null
+      - ipv6         = false -> null
+      - name         = "expense-tracker-tf-net" -> null
+      - options      = {
+          - "com.docker.network.enable_ipv4" = "true"
+          - "com.docker.network.enable_ipv6" = "false"
+        } -> null
+      - scope        = "local" -> null
+
+      - ipam_config {
+          - aux_address = {} -> null
+          - gateway     = "172.18.0.1" -> null
+          - subnet      = "172.18.0.0/16" -> null
+            # (1 unchanged attribute hidden)
+        }
+    }
+
+  # docker_volume.db_data will be destroyed
+  - resource "docker_volume" "db_data" {
+      - driver      = "local" -> null
+      - driver_opts = {} -> null
+      - id          = "expense-tracker-tf-db-data" -> null
+      - mountpoint  = "/var/lib/docker/volumes/expense-tracker-tf-db-data/_data" -> null
+      - name        = "expense-tracker-tf-db-data" -> null
+    }
+
+Plan: 0 to add, 0 to change, 6 to destroy.
+
+Changes to Outputs:
+  - app_url            = "http://localhost:8080" -> null
+  - health_url         = "http://localhost:8080/health" -> null
+  - web_container_name = "expense-tracker-tf-web" -> null
+docker_container.web: Destroying... [id=847983d71e30a5de73b03ae103a82c0a431872778ffe22c7cdf4a7f7057684b0]
+docker_container.web: Destruction complete after 0s
+docker_image.app: Destroying... [id=sha256:7b8229e16559d6065c47abce14d202fcd728d94bfaa2133c4dee964f497a2af8expense-tracker:local]
+docker_image.app: Destruction complete after 0s
+docker_container.db: Destroying... [id=9db95997bfa2d9d1ab023e3ec53aa514fab56aebd7bccc85c20bd192eee608d1]
+docker_container.db: Destruction complete after 0s
+docker_volume.db_data: Destroying... [id=expense-tracker-tf-db-data]
+docker_network.app: Destroying... [id=2351b0cbe6899506ba071ff74e7872a9047f5e35d77450efd28ac942f3f90b19]
+docker_image.postgres: Destroying... [id=sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139postgres:16-alpine]
+docker_image.postgres: Destruction complete after 0s
+docker_volume.db_data: Destruction complete after 3s
+docker_network.app: Destruction complete after 3s
+
+Destroy complete! Resources: 6 destroyed.

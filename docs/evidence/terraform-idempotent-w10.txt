@@ -1,0 +1,133 @@
+===== 2026-11-25 10:42:33 terraform version
+1.9.8
+===== terraform apply (first run)
+      + attach                                      = false
+      + bridge                                      = (known after apply)
+      + command                                     = (known after apply)
+      + container_logs                              = (known after apply)
+      + container_read_refresh_timeout_milliseconds = 15000
+      + entrypoint                                  = (known after apply)
+      + env                                         = (sensitive value)
+      + exit_code                                   = (known after apply)
+      + hostname                                    = (known after apply)
+      + id                                          = (known after apply)
+      + image                                       = (known after apply)
+      + init                                        = (known after apply)
+      + ipc_mode                                    = (known after apply)
+      + log_driver                                  = (known after apply)
+      + logs                                        = false
+      + memory_reservation                          = 0
+      + must_run                                    = true
+      + name                                        = "expense-tracker-tf-db"
+      + network_data                                = (known after apply)
+      + network_mode                                = "bridge"
+      + read_only                                   = false
+      + remove_volumes                              = true
+      + restart                                     = "unless-stopped"
+      + rm                                          = false
+      + runtime                                     = (known after apply)
+      + security_opts                               = (known after apply)
+      + shm_size                                    = (known after apply)
+      + start                                       = true
+      + stdin_open                                  = false
+      + stop_signal                                 = (known after apply)
+      + stop_timeout                                = (known after apply)
+      + tty                                         = false
+      + wait                                        = true
+      + wait_timeout                                = 60
+          + interval       = "5s"
+          + retries        = 10
+          + start_interval = "0s"
+          + start_period   = "0s"
+          + test           = [
+          + timeout        = "3s"
+          + aliases      = []
+          + name         = "expense-tracker-tf-net"
+          + container_path = "/var/lib/postgresql/data"
+          + volume_name    = "expense-tracker-tf-db-data"
+      + attach                                      = false
+      + bridge                                      = (known after apply)
+      + command                                     = (known after apply)
+      + container_logs                              = (known after apply)
+      + container_read_refresh_timeout_milliseconds = 15000
+      + entrypoint                                  = (known after apply)
+      + env                                         = (sensitive value)
+      + exit_code                                   = (known after apply)
+      + hostname                                    = (known after apply)
+      + id                                          = (known after apply)
+      + image                                       = (known after apply)
+      + init                                        = (known after apply)
+      + ipc_mode                                    = (known after apply)
+      + log_driver                                  = (known after apply)
+      + logs                                        = false
+      + memory_reservation                          = 0
+      + must_run                                    = true
+      + name                                        = "expense-tracker-tf-web"
+      + network_data                                = (known after apply)
+      + network_mode                                = "bridge"
+      + read_only                                   = false
+      + remove_volumes                              = true
+      + restart                                     = "unless-stopped"
+      + rm                                          = false
+      + runtime                                     = (known after apply)
+      + security_opts                               = (known after apply)
+      + shm_size                                    = (known after apply)
+      + start                                       = true
+      + stdin_open                                  = false
+      + stop_signal                                 = (known after apply)
+      + stop_timeout                                = (known after apply)
+      + tty                                         = false
+      + wait                                        = false
+      + wait_timeout                                = 60
+          + aliases      = []
+          + name         = "expense-tracker-tf-net"
+          + external = 8080
+          + internal = 8000
+          + ip       = "0.0.0.0"
+          + protocol = "tcp"
+      + id           = (known after apply)
+      + image_id     = (known after apply)
+      + keep_locally = true
+      + name         = "expense-tracker:local"
+      + repo_digest  = (known after apply)
+      + id           = (known after apply)
+      + image_id     = (known after apply)
+      + keep_locally = true
+      + name         = "postgres:16-alpine"
+      + repo_digest  = (known after apply)
+      + driver      = (known after apply)
+      + id          = (known after apply)
+      + internal    = (known after apply)
+      + ipam_driver = "default"
+      + name        = "expense-tracker-tf-net"
+      + options     = (known after apply)
+      + scope       = (known after apply)
+      + driver     = (known after apply)
+      + id         = (known after apply)
+      + mountpoint = (known after apply)
+      + name       = "expense-tracker-tf-db-data"
+Plan: 6 to add, 0 to change, 0 to destroy.
+Changes to Outputs:
+  + app_url            = "http://localhost:8080"
+  + health_url         = "http://localhost:8080/health"
+  + web_container_name = "expense-tracker-tf-web"
+docker_volume.db_data: Creation complete after 0s [id=expense-tracker-tf-db-data]
+docker_image.app: Creation complete after 1s [id=sha256:6fc2fe7b9523ca191cd5173bf2139ac33774f5d26da84092d54ea78240d4eaedexpense-tracker:local]
+docker_image.postgres: Creation complete after 1s [id=sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139postgres:16-alpine]
+docker_network.app: Creation complete after 2s [id=cd1672390f7a096def221932b5ae468d6d9e01c46a4b3a5a8db5726ba872cbc3]
+docker_container.db: Creation complete after 6s [id=184cef6244d8f865dec34b54a7e0a574d79178b1887731bf132119372d503ab2]
+docker_container.web: Creation complete after 1s [id=e21d954667c82caaa040759fbb6c59cb85b623997eab0e55f7446d32711ed5f2]
+Apply complete! Resources: 6 added, 0 changed, 0 destroyed.
+Outputs:
+app_url = "http://localhost:8080"
+health_url = "http://localhost:8080/health"
+web_container_name = "expense-tracker-tf-web"
+===== smoke test on port 8080
+
+SMOKE TEST PASSED
+===== terraform plan (second run, must be 'No changes')
+No changes. Your infrastructure matches the configuration.
+plan exit code: 0 (0 = no changes)
+===== terraform destroy
+Plan: 0 to add, 0 to change, 6 to destroy.
+Destroy complete! Resources: 6 destroyed.
