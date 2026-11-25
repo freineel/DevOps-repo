@@ -1,0 +1,176 @@
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # docker_container.db will be created
+  + resource "docker_container" "db" {
+      + attach                                      = false
+      + bridge                                      = (known after apply)
+      + command                                     = (known after apply)
+      + container_logs                              = (known after apply)
+      + container_read_refresh_timeout_milliseconds = 15000
+      + entrypoint                                  = (known after apply)
+      + env                                         = (sensitive value)
+      + exit_code                                   = (known after apply)
+      + hostname                                    = (known after apply)
+      + id                                          = (known after apply)
+      + image                                       = (known after apply)
+      + init                                        = (known after apply)
+      + ipc_mode                                    = (known after apply)
+      + log_driver                                  = (known after apply)
+      + logs                                        = false
+      + memory_reservation                          = 0
+      + must_run                                    = true
+      + name                                        = "expense-tracker-tf-db"
+      + network_data                                = (known after apply)
+      + network_mode                                = "bridge"
+      + read_only                                   = false
+      + remove_volumes                              = true
+      + restart                                     = "unless-stopped"
+      + rm                                          = false
+      + runtime                                     = (known after apply)
+      + security_opts                               = (known after apply)
+      + shm_size                                    = (known after apply)
+      + start                                       = true
+      + stdin_open                                  = false
+      + stop_signal                                 = (known after apply)
+      + stop_timeout                                = (known after apply)
+      + tty                                         = false
+      + wait                                        = true
+      + wait_timeout                                = 60
+
+      + healthcheck {
+          + interval       = "5s"
+          + retries        = 10
+          + start_interval = "0s"
+          + start_period   = "0s"
+          + test           = [
+              + "CMD-SHELL",
+              + "pg_isready -U expenses -d expenses",
+            ]
+          + timeout        = "3s"
+        }
+
+      + labels (known after apply)
+
+      + networks_advanced {
+          + aliases      = []
+          + name         = "expense-tracker-tf-net"
+            # (3 unchanged attributes hidden)
+        }
+
+      + volumes {
+          + container_path = "/var/lib/postgresql/data"
+          + volume_name    = "expense-tracker-tf-db-data"
+            # (2 unchanged attributes hidden)
+        }
+    }
+
+  # docker_container.web will be created
+  + resource "docker_container" "web" {
+      + attach                                      = false
+      + bridge                                      = (known after apply)
+      + command                                     = (known after apply)
+      + container_logs                              = (known after apply)
+      + container_read_refresh_timeout_milliseconds = 15000
+      + entrypoint                                  = (known after apply)
+      + env                                         = (sensitive value)
+      + exit_code                                   = (known after apply)
+      + hostname                                    = (known after apply)
+      + id                                          = (known after apply)
+      + image                                       = (known after apply)
+      + init                                        = (known after apply)
+      + ipc_mode                                    = (known after apply)
+      + log_driver                                  = (known after apply)
+      + logs                                        = false
+      + memory_reservation                          = 0
+      + must_run                                    = true
+      + name                                        = "expense-tracker-tf-web"
+      + network_data                                = (known after apply)
+      + network_mode                                = "bridge"
+      + read_only                                   = false
+      + remove_volumes                              = true
+      + restart                                     = "unless-stopped"
+      + rm                                          = false
+      + runtime                                     = (known after apply)
+      + security_opts                               = (known after apply)
+      + shm_size                                    = (known after apply)
+      + start                                       = true
+      + stdin_open                                  = false
+      + stop_signal                                 = (known after apply)
+      + stop_timeout                                = (known after apply)
+      + tty                                         = false
+      + wait                                        = false
+      + wait_timeout                                = 60
+
+      + healthcheck (known after apply)
+
+      + labels (known after apply)
+
+      + networks_advanced {
+          + aliases      = []
+          + name         = "expense-tracker-tf-net"
+            # (3 unchanged attributes hidden)
+        }
+
+      + ports {
+          + external = 8080
+          + internal = 8000
+          + ip       = "0.0.0.0"
+          + protocol = "tcp"
+        }
+    }
+
+  # docker_image.app will be created
+  + resource "docker_image" "app" {
+      + id           = (known after apply)
+      + image_id     = (known after apply)
+      + keep_locally = true
+      + name         = "expense-tracker:local"
+      + repo_digest  = (known after apply)
+    }
+
+  # docker_image.postgres will be created
+  + resource "docker_image" "postgres" {
+      + id           = (known after apply)
+      + image_id     = (known after apply)
+      + keep_locally = true
+      + name         = "postgres:16-alpine"
+      + repo_digest  = (known after apply)
+    }
+
+  # docker_network.app will be created
+  + resource "docker_network" "app" {
+      + driver      = (known after apply)
+      + id          = (known after apply)
+      + internal    = (known after apply)
+      + ipam_driver = "default"
+      + name        = "expense-tracker-tf-net"
+      + options     = (known after apply)
+      + scope       = (known after apply)
+
+      + ipam_config (known after apply)
+    }
+
+  # docker_volume.db_data will be created
+  + resource "docker_volume" "db_data" {
+      + driver     = (known after apply)
+      + id         = (known after apply)
+      + mountpoint = (known after apply)
+      + name       = "expense-tracker-tf-db-data"
+    }
+
+Plan: 6 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + app_url            = "http://localhost:8080"
+  + health_url         = "http://localhost:8080/health"
+  + web_container_name = "expense-tracker-tf-web"
+
+─────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.

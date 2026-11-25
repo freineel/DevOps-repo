@@ -8,7 +8,7 @@
 
 ## Self-review
 
-- [ ] CI is green (Lint, Test, Build image)
+- [ ] CI is green (Lint, Test, Build image, Trivy scan)
 - [ ] Tests added, or not needed because: ...
 - [ ] Documentation updated, or not affected
 - [ ] Diff read once more on GitHub
