@@ -7,8 +7,8 @@ am 25.11.2026. Hinter jedem Punkt steht, wo oder wie er geprüft wurde.
 
 - [x] Öffentliches GitHub-Repository existiert und ist erreichbar. (`gh repo view`: PUBLIC)
 - [x] **`normansuesstrunk`** ist als Collaborator eingeladen (Leserechte genügen). (Einladung offen, seit 14.10.2026)
-- [x] `main` ist durch eine Branch Protection Rule gegen direkte Pushes geschützt. (PR Pflicht, Checks Lint/Test/Build image, gilt auch für Admins)
-- [x] Mindestens fünf Pull Requests sind gemergt. (17)
+- [x] `main` ist durch eine Branch Protection Rule gegen direkte Pushes geschützt. (PR Pflicht, Checks Lint/Test/Build image/Trivy scan, gilt auch für Admins)
+- [x] Mindestens fünf Pull Requests sind gemergt. (18)
 - [x] Jeder dieser PRs hat eine Beschreibung, die *was* und *warum* festhält. (PR-Vorlage seit #5)
 - [x] Jeder dieser PRs war zum Merge-Zeitpunkt grün in der CI. (seit #5, als die CI dazukam)
 - [x] `CONTRIBUTING.md` beschreibt GitHub Flow, Commit- und Selbstprüfungsregeln.
@@ -68,7 +68,7 @@ am 25.11.2026. Hinter jedem Punkt steht, wo oder wie er geprüft wurde.
 - [x] Ein Grafana-Dashboard „Expense Tracker Overview" existiert.
 - [x] Das Dashboard zeigt mindestens Request-Rate, Fehlerrate und Latenz.
 - [x] Das Dashboard-JSON ist im Repository versioniert.
-- [x] Ein Trivy-Scan läuft in der Pipeline und ist im Log sichtbar. (`trivy-scan.yml`)
+- [x] Ein Trivy-Scan läuft in der Pipeline und ist im Log sichtbar. (`trivy-scan.yml`, Pflicht-Check)
 - [x] Der Trivy-Schwellwert ist gesetzt und dokumentiert. (ADR 0004, MONITORING.md)
 - [x] `git log -p` enthält keine Passwörter, Tokens oder Keys. (`gitleaks git`, 25.11.2026)
 - [x] Secrets liegen in GitHub Secrets bzw. der Deploy-Umgebung, nicht im Code.

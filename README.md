@@ -93,9 +93,9 @@ Every pull request and every push to `main` runs the pipeline in
 | Build image | `docker build`, then the container must answer on `/health` |
 
 `main` is protected: a pull request can only be merged when all three jobs
-are green. Pull request #6 shows a red pipeline blocking the merge
-([screenshot](docs/evidence/ci-red-blocks-merge.png)). The Trivy scan runs
-as a separate workflow, see [Security](#security).
+and the Trivy scan (separate workflow, see [Security](#security)) are green.
+Pull request #6 shows a red pipeline blocking the merge
+([screenshot](docs/evidence/ci-red-blocks-merge.png)).
 
 The tests in `tests/test_postgres_repository.py` need a database. They run in
 the pipeline and are skipped locally unless `TEST_DATABASE_URL` is set.
